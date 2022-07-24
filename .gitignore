@@ -1,0 +1,6 @@
+/projects/postgres-data
+**/.idea
+**/.env
+**/.vscode
+**/tmp
+**/.DS_STORE

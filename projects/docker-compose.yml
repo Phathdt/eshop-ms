@@ -1,0 +1,37 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:14.4-alpine
+    ports:
+      - '15432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123123123
+
+  redis:
+    image: bitnami/redis:7.0.4
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - '16379:6379'
+
+  user_api:
+    build:
+      context: ../user_api
+      dockerfile: ./Dockerfile
+    environment:
+      USER_API_APP_ENV: dev
+      USER_API_LOG_LEVEL: INFO
+      USER_API_HTTP_PORT: 3000
+      USER_API_POSTGRES_HOST: postgres
+      USER_API_POSTGRES_PORT: 5432
+      USER_API_POSTGRES_USER: postgres
+      USER_API_POSTGRES_PASS: 123123123
+      USER_API_POSTGRES_DATABASE: user_db
+      USER_API_POSTGRES_SSLMODE: disable
+      USER_API_REDIS_HOST: redis:6379
+      USER_API_REDIS_DB: 0
+    volumes:
+      - ../user_api:/usr/app
+    ports:
+      - 3000:3000
