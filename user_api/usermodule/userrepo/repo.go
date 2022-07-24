@@ -2,8 +2,10 @@ package userrepo
 
 import (
 	"context"
+	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/sirupsen/logrus"
 	"user_api/pkg/sdkcm"
 	models "user_api/usermodule/usermodel"
@@ -38,14 +40,31 @@ func (r *repo) FindUser(ctx context.Context, data map[string]interface{}) (*mode
 	return r.store.GetUserByCondition(ctx, data)
 }
 
-func (r *repo) CreateUserToken(ctx context.Context, userID uint32, token string) error {
-	expiredAt := sdkcm.JSONTime(time.Now().Add(time.Hour * 24))
-	userToken := models.UserToken{
-		SQLModel:  *sdkcm.NewSQLModel(),
-		UserID:    userID,
-		Token:     token,
-		ExpiredAt: &expiredAt,
+func (r *repo) CreateUserToken(ctx context.Context, user *models.User) (*string, error) {
+	claims := jwt.MapClaims{
+		"email": user.Email,
+		"id":    user.ID,
+		"exp":   time.Now().Add(time.Hour * 72).Unix(),
 	}
 
-	return r.store.CreateUserToken(ctx, &userToken)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	t, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		return nil, err
+	}
+
+	signs := strings.Split(t, ".")
+
+	userToken := models.UserToken{
+		SQLModel: *sdkcm.NewSQLModel(),
+		UserID:   user.ID,
+		Token:    signs[2],
+	}
+
+	if err = r.store.CreateUserToken(ctx, &userToken); err != nil {
+		return nil, err
+	}
+
+	return &t, nil
 }

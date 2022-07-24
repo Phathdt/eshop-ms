@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 
+	jwtware "github.com/gofiber/jwt/v3"
 	"user_api/component"
 	"user_api/middleware"
 	"user_api/pkg/config"
@@ -46,6 +47,10 @@ func (s *server) Run() error {
 
 	app.Post("/api/users", userfiber.CreateUser(s.AppContext))
 	app.Post("/api/users/login", userfiber.Login(s.AppContext))
+
+	app.Use(jwtware.New(jwtware.Config{
+		SigningKey: []byte("secret"),
+	}))
 
 	addr := fmt.Sprintf(":%d", cfg.HTTP.Port)
 	if err := app.Listen(addr); err != nil {
