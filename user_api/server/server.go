@@ -34,9 +34,7 @@ func (s *server) Run() error {
 	app := s.app
 	cfg := config.Config
 
-	app.Use(logger.New(logger.Config{
-		Format: `{"ip":${ip}, "timestamp":"${time}", "status":${status}, "latency":"${latency}", "method":"${method}", "path":"${path}"}` + "\n",
-	}))
+	app.Use(logger.New())
 	app.Use(compress.New())
 	app.Use(cors.New())
 
