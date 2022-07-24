@@ -55,8 +55,11 @@ func (s *server) Run() error {
 	app.Get("/", ping())
 	app.Get("/ping", ping())
 
-	app.Post("/api/users", userfiber.CreateUser(s.AppContext))
-	app.Post("/api/users/login", userfiber.Login(s.AppContext))
+	publicUser := app.Group("/api/users")
+	{
+		publicUser.Post("", userfiber.CreateUser(s.AppContext))
+		publicUser.Post("/login", userfiber.Login(s.AppContext))
+	}
 
 	app.Use(jwtware.New(jwtware.Config{
 		SigningKey: []byte("secret"),
@@ -68,8 +71,11 @@ func (s *server) Run() error {
 	}))
 
 	app.Use(middleware.IsAuthenticated(s.AppContext))
+	privateUser := app.Group("/api/users")
+	{
+		privateUser.Get("", restricted)
+	}
 
-	app.Get("/api/users/restricted", restricted)
 	addr := fmt.Sprintf(":%d", cfg.HTTP.Port)
 	if err := app.Listen(addr); err != nil {
 		return err
