@@ -4,6 +4,7 @@ CREATE TABLE "user_tokens" (
     "id" BIGSERIAL PRIMARY KEY,
     "user_id" bigint,
     "token" text,
+    "active" boolean DEFAULT 'true',
     "created_at" timestamp(0) DEFAULT now(),
     "updated_at" timestamp(0) DEFAULT now()
 );

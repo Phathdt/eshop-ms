@@ -54,3 +54,20 @@ func (s *sqlStorage) CreateUserToken(ctx context.Context, data *models.UserToken
 
 	return nil
 }
+
+func (s *sqlStorage) GetUserTokenByCondition(ctx context.Context, cond map[string]interface{}) (*models.UserToken, error) {
+	var data models.UserToken
+
+	db := s.db.Table(models.UserToken{}.TableName())
+
+	result := db.Where(cond).Limit(1).Find(&data)
+	if result.Error != nil {
+		return nil, sdkcm.ErrDB(result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return nil, sdkcm.ErrDataNotFound
+	}
+
+	return &data, nil
+}

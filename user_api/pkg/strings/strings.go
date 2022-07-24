@@ -6,11 +6,12 @@ import (
 
 const letterBytes = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const numberBytes = "0123456789"
+const allBytes = letterBytes + numberBytes
 
 func RandStringBytes(n int) string {
 	b := make([]byte, n)
 	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+		b[i] = allBytes[rand.Intn(len(allBytes))]
 	}
 	return string(b)
 }

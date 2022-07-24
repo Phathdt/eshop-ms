@@ -2,11 +2,13 @@ package server
 
 import (
 	"fmt"
+	"net/http"
 
 	jwtware "github.com/gofiber/jwt/v3"
 	"user_api/component"
 	"user_api/middleware"
 	"user_api/pkg/config"
+	models "user_api/usermodule/usermodel"
 	"user_api/usermodule/usertransport/userfiber"
 
 	"github.com/gofiber/fiber/v2"
@@ -32,6 +34,14 @@ func ping() fiber.Handler {
 	}
 }
 
+func restricted(ctx *fiber.Ctx) error {
+	user := ctx.Context().UserValue("user").(*models.User)
+
+	return ctx.JSON(fiber.Map{
+		"user": user,
+	})
+}
+
 func (s *server) Run() error {
 	app := s.app
 	cfg := config.Config
@@ -50,8 +60,16 @@ func (s *server) Run() error {
 
 	app.Use(jwtware.New(jwtware.Config{
 		SigningKey: []byte("secret"),
+		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+			return ctx.Status(http.StatusUnauthorized).JSON(&fiber.Map{
+				"msg": "unauthenticated",
+			})
+		},
 	}))
 
+	app.Use(middleware.IsAuthenticated(s.AppContext))
+
+	app.Get("/api/users/restricted", restricted)
 	addr := fmt.Sprintf(":%d", cfg.HTTP.Port)
 	if err := app.Listen(addr); err != nil {
 		return err

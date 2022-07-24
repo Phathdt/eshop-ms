@@ -8,7 +8,7 @@ import (
 type User struct {
 	sdkcm.SQLModel `json:",inline"`
 	Email          string `json:"email"`
-	Password       string `json:"password"`
+	Password       string `json:"-"`
 }
 
 func (user *User) ComparePassword(password string) error {
